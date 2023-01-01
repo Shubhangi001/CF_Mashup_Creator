@@ -33,7 +33,9 @@ async def on_message(message):
     if message.content.startswith('$mashup'):
         def check(m):
             return m.author == message.author and m.channel == message.channel
-        await message.channel.send("Enter the ratings of problems you want to add to the mashup separated by a space")
+        helpC = discord.Embed(title="CF Mashup Bot\n",description="Enter the ratings of problems you want to add to the mashup separated by a space", color=0x00ff00)
+        await message.channel.send(embed=helpC)
+        # await message.channel.send("Enter the ratings of problems you want to add to the mashup separated by a space")
         try:
             try:
                 ratings = await client.wait_for('message', check=check)
@@ -42,11 +44,15 @@ async def on_message(message):
                 for i in range(m):
                     ratings[i] = int(ratings[i])
             except:
-                await message.channel.send("Invalid ratings")
+                helpC = discord.Embed(title="CF Mashup Bot\n",description="Invalid ratings", color=0xff0000)
+                await message.channel.send(embed=helpC)
+                # await message.channel.send("Invalid ratings")
                 return
             solved_problems = set()
             problems_list = []
-            await message.channel.send("Enter the users' profile handles separated by a space")
+            helpC = discord.Embed(title="CF Mashup Bot\n",description="Enter the users' profile handles separated by a space", color=0x00ff00)
+            await message.channel.send(embed=helpC)
+            # await message.channel.send("Enter the users' profile handles separated by a space")
             # handles = []
             handles = await client.wait_for('message', check=check)
             handles = handles.content.split()
@@ -57,7 +63,9 @@ async def on_message(message):
                         'https://codeforces.com/api/user.status?handle=' + handles[i])
                     result = response.json()['result']
                 except:
-                    await message.channel.send("Invalid handle: "+handles[i])
+                    helpC = discord.Embed(title="CF Mashup Bot\n",description="Invalid handle: "+handles[i], color=0xff0000)
+                    await message.channel.send(embed=helpC)
+                    # await message.channel.send("Invalid handle: "+handles[i])
                     return
                 for j in range(len(result)):
                     try:
@@ -70,10 +78,11 @@ async def on_message(message):
             response = requests.get(
                 'https://codeforces.com/api/problemset.problems')
             result = response.json()['result']['problems']
+            helpC = discord.Embed(title="CF Mashup Bot\n",description="Problems for given ratings are", color=0x00ff00)
             for i in range(len(ratings)):
+                problems = ""
                 problems_list.append(str(ratings[i]) + ": ")
                 cnt = 0
-                await message.channel.send('Problems with '+str(ratings[i])+' rating are:')
                 for j in range(len(result)):
                     try:
                         if (result[j]['rating'] == ratings[i]):
@@ -82,14 +91,22 @@ async def on_message(message):
                             x = frozenset({contestid, index})
                             if x not in solved_problems and x not in problems_list:
                                 problems_list.append(x)
-                                await message.channel.send(str(contestid)+str(index))
+                                problems += str(contestid) + str(index) + " "
+                                # await message.channel.send(str(contestid)+str(index))
                                 cnt += 1
                                 if cnt == 3:
                                     break
                     except:
                         pass
+                
+                helpC.add_field(name=str(ratings[i]), value=problems, inline=False)
+            await message.channel.send(embed=helpC)
         except:
-            await message.channel.send("Invalid inputs given")
+            #red color embed
+
+            helpC = discord.Embed(title="CF Mashup Bot\n",description="Some unknown error occured", color=0xff0000)
+            await message.channel.send(embed=helpC)
+            # await message.channel.send("Invalid inputs given")
 
         happyemojis = ['\U0001F600','\U0001f600','\U0001F917','\U0001F607','\U0001F60A']
         await message.channel.send("Thank you for using me!"+random.choice(happyemojis))
@@ -104,5 +121,5 @@ async def on_message(message):
 
 load_dotenv(".env")
 TOKEN = os.getenv("DISC_TOKEN")
-keep_alive()
+# keep_alive()
 client.run(TOKEN)
