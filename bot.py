@@ -6,6 +6,8 @@ from discord.ext import tasks, commands
 from discord.utils import get
 from dotenv import load_dotenv
 import asyncio
+from keep_alive import keep_alive
+
 
 
 intents = discord.Intents.all()
@@ -17,6 +19,12 @@ client = discord.Client(intents=intents)
 async def on_ready():
     print("We have logged in as {0.user}".format(client))
 
+@client.event
+async def on_member_join(member):
+    #When a member joins the discord, they will get mentioned with this welcome message
+    await member.create_dm()
+    await member.dm_channel.send(f'Hi {member.name}, welcome to our Discord server!\nMake sure to read our guidelines in the welcome channel.')
+
 
 @client.event
 async def on_message(message):
@@ -25,37 +33,32 @@ async def on_message(message):
     if message.content.startswith('$mashup'):
         def check(m):
             return m.author == message.author and m.channel == message.channel
-        await message.channel.send("How many problems do you want to add to the mashup?")
+        await message.channel.send("Enter the ratings of problems you want to add to the mashup separated by a space")
         try:
-            m = await client.wait_for('message', check=check)
-            m = int(m.content)
-            ratings = []
-            for i in range(m):
-                await message.channel.send("Rating of problem "+str(i+1))
-                rating = await client.wait_for('message', check=check)
-                ratings.append(int(rating.content))
+            try:
+                ratings = await client.wait_for('message', check=check)
+                ratings = ratings.content.split()
+                m = len(ratings)
+                for i in range(m):
+                    ratings[i] = int(ratings[i])
+            except:
+                await message.channel.send("Invalid ratings")
+                return
             solved_problems = set()
-
             problems_list = []
-            await message.channel.send("How many users are there in the mashup?")
-            n = await client.wait_for('message', check=check)
-            n = int(n.content)
-            await message.channel.send("Enter the users' profile handles")
+            await message.channel.send("Enter the users' profile handles separated by a space")
             # handles = []
-            while (n > 0):
-                # for i in range(n):
-                handle = await client.wait_for('message', check=check)
-                handle = handle.content
-                # handles.append(handle.content)
+            handles = await client.wait_for('message', check=check)
+            handles = handles.content.split()
+            n = len(handles)
+            for i in range(n):
                 try:
                     response = requests.get(
-                        'https://codeforces.com/api/user.status?handle=' + handle)
+                        'https://codeforces.com/api/user.status?handle=' + handles[i])
                     result = response.json()['result']
                 except:
-                    await message.channel.send("Invalid handle: "+handle)
-                    await message.channel.send("Enter a valid profile handle")
-                    continue
-                n -= 1
+                    await message.channel.send("Invalid handle: "+handles[i])
+                    return
                 for j in range(len(result)):
                     try:
                         if result[j]['verdict'] == 'OK' and result[j]['problem']['rating'] in ratings:
@@ -81,7 +84,7 @@ async def on_message(message):
                                 problems_list.append(x)
                                 await message.channel.send(str(contestid)+str(index))
                                 cnt += 1
-                                if cnt == 4:
+                                if cnt == 3:
                                     break
                     except:
                         pass
@@ -98,6 +101,8 @@ async def on_message(message):
         helpC.add_field(name="Mashup", value="To use this command type $mashup, then mention the ratings of problems and the users participating in the mashup.", inline=False)
         helpC.add_field(name="Help", value="To use this command type $help", inline=False)
         await message.channel.send(embed=helpC)
+
 load_dotenv(".env")
 TOKEN = os.getenv("DISC_TOKEN")
+keep_alive()
 client.run(TOKEN)
