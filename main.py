@@ -25,11 +25,10 @@ def get_problems(handles, ratings):
                     solved_problems.add(x)
             except:
                 pass
+    response = requests.get('https://codeforces.com/api/problemset.problems')
+    result = response.json()['result']['problems']
     for i in range(len(ratings)):
         print(ratings[i],": ",end=" ")
-        response = requests.get('https://codeforces.com/api/problemset.problems')
-        result = response.json()['result']['problems']
-        # print(result)
         cnt = 0
         for j in range(len(result)):
             try:
