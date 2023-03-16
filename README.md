@@ -4,7 +4,7 @@ Welcome to the Codeforces Mashup Assistant Bot! This bot is designed to assist y
 ![image](https://user-images.githubusercontent.com/73179209/213900975-62e030b4-9292-4855-932a-cc2a6437decf.png)
 
 
-So, don't wait! Invite this bot to your Discord channel right away!
+So, don't wait! Invite this bot to your Discord server right away!
 
 Invite link : https://discord.com/oauth2/authorize?client_id=1058725042713796709&permissions=173946694720&scope=bot
 
